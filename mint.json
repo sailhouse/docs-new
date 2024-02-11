@@ -81,6 +81,15 @@
         "api-reference/endpoint/create",
         "api-reference/endpoint/delete"
       ]
+    },
+    {
+        "group": "Concepts",
+        "pages": [
+            "/concepts/events",
+            "/concepts/self-healing",
+            "/concepts/subscriptions",
+            "/concepts/topics"
+        ]
     }
   ],
   "footerSocials": {
