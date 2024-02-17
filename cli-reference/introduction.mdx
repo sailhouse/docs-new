@@ -1,17 +1,22 @@
 ---
-title: CLI
+title: Introduction
 ---
-import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Note>
+  This section is under active development
+</Note>
 
 ## Installing the CLI
 
 <Tabs>
-<TabItem label='MacOS'>
+<Tab title='MacOS'>
+Sailhouse is available via `homebrew` or the [Releases](https://github.com/cli/releases) page.
+
 ```bash
 brew install sailhouse/tap/sailhouse
 ```
-</TabItem>
-<TabItem label="Linux">
+</Tab>
+<Tab title="Linux">
 The CLI binary is available to download on the [Releases](https://github.com/sailhouse/cli/releases) page.
 
 This can be installed by `sudo dpkg -i` and `sudo rpm -i` depending on your platform.
@@ -21,10 +26,10 @@ Alternatively, using `bin`, you can install the CLI directly from GitHub.
 ```bash
 bin install github.com/sailhouse/cli
 ```
-</TabItem>
-<TabItem label="Windows">
+</Tab>
+<Tab title="Windows">
 The CLI binary is available to download on the [Releases](https://github.com/sailhouse/cli/releases) page.
-</TabItem>
+</Tab>
 </Tabs>
 
 ## Authenticating
@@ -38,35 +43,4 @@ sailhouse auth
 This will open a browser session, where you can login to authenticate the client against your user.
 
 The token this generates will expire after 30 days.
-
-{/* ## Command Reference
-
-### List teams
-
-```bash
-sailhouse teams list
-```
-
-### Set team
-
-```bash
-sailhouse teams set
-```
-
-### List apps
-
-```bash
-sailhouse apps list
-```
-
-### Create an app
-
-```bash
-sailhouse apps create
-```
-
-### Create a token for an app
-
-```bash
-sailhouse tokens create [app]
-``` */}
+s

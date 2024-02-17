@@ -1,51 +1,58 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "Starter Kit",
+  "name": "Sailhouse",
+  "openapi": [
+    "api-reference/openapi.json"
+  ],
   "logo": {
     "dark": "/logo/dark.svg",
     "light": "/logo/light.svg"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/favicon.png",
   "colors": {
-    "primary": "#0D9373",
-    "light": "#07C983",
-    "dark": "#0D9373",
+    "primary": "#ff8e3c",
+    "light": "#ff8e3c",
+    "dark": "#ff8e3c",
     "anchors": {
-      "from": "#0D9373",
-      "to": "#07C983"
+      "from": "#ff8e3c",
+      "to": "#ff8e3c"
     }
   },
   "topbarLinks": [
     {
       "name": "Support",
-      "url": "mailto:hi@mintlify.com"
+      "url": "mailto:support@sailhouse.dev"
     }
   ],
   "topbarCtaButton": {
     "name": "Dashboard",
-    "url": "https://dashboard.mintlify.com"
+    "url": "https://app.sailhouse.dev"
   },
   "tabs": [
     {
       "name": "API Reference",
       "url": "api-reference"
+    },
+    {
+      "name": "CLI",
+      "url": "cli-reference"
     }
   ],
   "anchors": [
     {
       "name": "Documentation",
       "icon": "book-open-cover",
-      "url": "https://mintlify.com/docs"
+      "url": "https://docs.sailhouse.dev"
     },
     {
       "name": "Community",
-      "icon": "slack",
-      "url": "https://mintlify.com/community"
+      "icon": "discord",
+      "url": "https://discord.gg/UyvsfJUE93"
     },
     {
       "name": "Blog",
       "icon": "newspaper",
-      "url": "https://mintlify.com/blog"
+      "url": "https://sailhouse.dev/blog"
     }
   ],
   "navigation": [
@@ -53,19 +60,23 @@
       "group": "Get Started",
       "pages": [
         "introduction",
-        "quickstart",
-        "development"
+        "quickstart"
       ]
     },
     {
-      "group": "Essentials",
+      "group": "Concepts",
       "pages": [
-        "essentials/markdown",
-        "essentials/code",
-        "essentials/images",
-        "essentials/settings",
-        "essentials/navigation",
-        "essentials/reusable-snippets"
+        "concepts/topics",
+        "concepts/subscriptions",
+        "concepts/events",
+        "concepts/self-healing"
+      ]
+    },
+    {
+      "group": "Reference",
+      "pages": [
+        "reference/faq",
+        "reference/tokens"
       ]
     },
     {
@@ -74,27 +85,23 @@
         "api-reference/introduction"
       ]
     },
+
     {
-      "group": "Endpoint Examples",
+      "group": "Events",
       "pages": [
-        "api-reference/endpoint/get",
-        "api-reference/endpoint/create",
-        "api-reference/endpoint/delete"
+        "api-reference/events/send"
       ]
     },
     {
-        "group": "Concepts",
-        "pages": [
-            "/concepts/events",
-            "/concepts/self-healing",
-            "/concepts/subscriptions",
-            "/concepts/topics"
-        ]
+      "group": "CLI Documentation",
+      "pages": [
+        "cli-reference/introduction"
+      ]
     }
   ],
   "footerSocials": {
-    "twitter": "https://twitter.com/mintlify",
-    "github": "https://github.com/mintlify",
-    "linkedin": "https://www.linkedin.com/company/mintsearch"
+    "twitter": "https://twitter.com/sailhousedev",
+    "github": "https://github.com/sailhouse",
+    "linkedin": "https://www.linkedin.com/company/sailhousedev"
   }
 }
