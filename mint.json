@@ -40,11 +40,6 @@
   ],
   "anchors": [
     {
-      "name": "Documentation",
-      "icon": "book-open-cover",
-      "url": "https://docs.sailhouse.dev"
-    },
-    {
       "name": "Community",
       "icon": "discord",
       "url": "https://discord.gg/UyvsfJUE93"
