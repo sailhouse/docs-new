@@ -103,5 +103,10 @@
     "twitter": "https://twitter.com/sailhousedev",
     "github": "https://github.com/sailhouse",
     "linkedin": "https://www.linkedin.com/company/sailhousedev"
-  }
+  },
+  "analytics": {
+    "plausible": {
+        "domain": "docs.sailhouse.dev"
+    }
+}
 }
