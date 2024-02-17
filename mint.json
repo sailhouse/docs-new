@@ -73,6 +73,14 @@
       ]
     },
     {
+      "group": "SDKs",
+      "pages": [
+        "sdks/introduction",
+        "sdks/typescript",
+        "sdks/go"
+      ]
+    },
+    {
       "group": "Reference",
       "pages": [
         "reference/faq",
