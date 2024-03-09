@@ -9,7 +9,15 @@ Push subscriptions allow you to receive a `POST` request from Sailhouse when you
   <img src="images/welcome-email-sub.png" />
 </Frame>
 
-## Push
+## Handling the request
+
+Sailhouse sends a `POST` request to the endpoint specified in the subscription. In the screenshot above, you can see this defined as `https://api.acme.dev/api/send-welcome/email`.
+
+The data of your event is sent within the body, alongside some additional headers.
+
+- `sh-signature` - App-specific signature to verify the source of the request
+- `identifier` - Checksum combining the event ID, subscription and time sent - globally unique for your application
+- `event-id` - ID of the event
 
 ```ts
 import express from 'express';
@@ -23,7 +31,7 @@ app.post("/api/send-welcome-email", async (req, res) => {
 })
 ```
 
-### Security
+## Security
 
 To ensure the request has come from Sailhouse, you can check the `sh-signature` header of the incoming request against the Signature visible in your app settings.
 
@@ -59,7 +67,7 @@ app.post("/api/send-welcome-email", async (req, res) => {
 If Sailhouse receives a `403` in response to a push subscription endpoint, it will retry as normal before placing in the Dead Letter Queue.
 </Note>
 
-### Considerations
+## Considerations
 
 ### Timeout
 
@@ -69,6 +77,14 @@ Sailhouse will consider, and then cancel, a request if it is taking long than 5 
 
 Sailhouse has a limitation of 4MB when receiving events, so your application should be able to process requests of that size.
 
-## Pull
+### Idempotency
 
-Pull subscriptions allow your application to "pull" directly from Sailhouse on it's own schedule. This could be a continuous process where you receive events as soon as they're in, or even a scheduled job where you process events in bulk.
+The `identifer` header passed contains a checksum built up of the following data.
+
+- Event ID
+- Subscription
+- Timestamp of the published event
+
+Although Sailhouse aims to deliver once, technically it is regarded as `atleast-once`. This `identifier` header value can be used to check if you have processed this event for this subscription before.
+
+You should use this value over the `event-id` header, as that value is the same across all subscriptions for a topic.
