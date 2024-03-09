@@ -1,0 +1,74 @@
+---
+title: Receiving push events
+description: Get up to speed on handling events from push subscriptions
+---
+
+Push subscriptions allow you to receive a `POST` request from Sailhouse when you send an event to a topic. They're great for serverless applications, hosted on platforms like Netlify, Vercel, Cloudflare or Google Cloud Run.
+
+<Frame>
+  <img src="images/welcome-email-sub.png" />
+</Frame>
+
+## Push
+
+```ts
+import express from 'express';
+
+const app = express();
+
+app.use(express.json());
+
+app.post("/api/send-welcome-email", async (req, res) => {
+    const event = req.body;
+})
+```
+
+### Security
+
+To ensure the request has come from Sailhouse, you can check the `sh-signature` header of the incoming request against the Signature visible in your app settings.
+
+<Warning>
+This is a sensitive value that should not be publically available. You can always re-generate this signature.
+</Warning>
+
+To view your app's signature in [the dashboard](https://app.sailhouse.dev), navigate to **Home** -> **Apps** -> _Select your app_ -> **Settings**.
+
+Use this value within your application, as you would with any other secret. This could be via environment variables, or a managed solution like Google Secrets Manager.
+
+```ts
+import express from 'express';
+
+const app = express();
+
+app.use(express.json());
+
+app.post("/api/send-welcome-email", async (req, res) => {
+    const event = req.body;
+    const shSignature = req.headers['sh-signature'];
+    const sailhouseSignature = process.env.SAILHOUSE_SIGNATURE;
+
+    if (shSignature !== sailhouseSignature) {
+        return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    // ...
+})
+```
+
+<Note>
+If Sailhouse receives a `403` in response to a push subscription endpoint, it will retry as normal before placing in the Dead Letter Queue.
+</Note>
+
+### Considerations
+
+### Timeout
+
+Sailhouse will consider, and then cancel, a request if it is taking long than 5 seconds. This is configurable up to 15 minutes via [contacting support](mailto:support@sailhouse.dev).
+
+### Payload size
+
+Sailhouse has a limitation of 4MB when receiving events, so your application should be able to process requests of that size.
+
+## Pull
+
+Pull subscriptions allow your application to "pull" directly from Sailhouse on it's own schedule. This could be a continuous process where you receive events as soon as they're in, or even a scheduled job where you process events in bulk.
