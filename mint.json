@@ -78,7 +78,8 @@
       "pages": [
         "sdks/introduction",
         "sdks/typescript",
-        "sdks/go"
+        "sdks/go",
+        "sdks/rust"
       ]
     },
     {
