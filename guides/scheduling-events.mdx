@@ -1,0 +1,59 @@
+---
+title: Scheduling Events
+description: Queue up future work
+---
+
+You can schedule events to be processed a time after they're sent. This can be done at either for a given event, or a subscription, depending on your needs.
+
+## Topics
+
+To scheduled event to a topic, you can set a property when publishing the event to define the exact time for the event to be sent to all subscribers.
+
+This is often useful for scheduling a future job, for example processing a payment 14 days after an order, or sending a reminder of a task that is due.
+
+<Tabs>
+<Tab title='TypeScript'>
+```ts
+const now = new Date();
+const due = addDays(now, 14);
+
+await client.publish('send-payment-invoice', {
+    customer_id: 'cust_123',
+    invoice_id: 'inv_321',
+}, {
+    date: due
+});
+```
+</Tab>
+<Tab title='Go'>
+```go
+data := SendPaymentInvoiceEvent{
+    CustomerID: "cust_123",
+    InvoiceID: "inv_321",
+}
+
+err := client.Publish(
+    ctx,
+    "send-payment-invoice",
+    data,
+    sailhouse.WithScheduledTime(time.Now().Add(time.Hour * 24 * 14)),
+)
+```
+</Tab>
+</Tabs>
+
+## Subscriptions
+
+<Info>
+This feature is currently in **private** beta, to enable, please [contact us](mailto:support@sailhouse.dev).
+</Info>
+
+You can also define an offset on a given subscription. This is more in tradition with a pub/sub application, but Sailhouse is more than flexible enough to accomodate any pattern.
+
+### Offset
+
+For a given subscription, you can set a _fixed_ value of time to delay the processing of an event within a subscription.
+
+Taking the same pattern as above, where we want to send an invoice after 14 days, you could create a `send-payment-invoice` subscription on a `order-made` topic, and configure it's offset to be 14 days.
+
+This is available for both `push` and `pull` subscriptions, but **not** for any integration subscriptions such as Slack.

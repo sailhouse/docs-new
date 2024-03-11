@@ -61,7 +61,8 @@
     {
       "group": "Guides",
       "pages": [
-        "guides/receiving-push-events"
+        "guides/receiving-push-events",
+        "guides/scheduling-events"
       ]
     },
     {
