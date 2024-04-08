@@ -4,61 +4,46 @@ title: Events
 
 Events are the primary concept on Sailhouse. The container, envelope, metaphor of choice for your data.
 
-## Summary
+They are JSON objects that get sent to a topic. You can't send an event to multiple topics, but you can send multiple events with the same data to multiple topics (although, that is likely an anti-pattern).
 
-Events are JSON objects that get sent to a topic. You can't send an event to multiple topics, but you can send multiple events with the same data to multiple topics (although, that is likely an anti-pattern).
+## Using events
 
-## Publishing events
+<CardGroup cols={2}>
 
-Sending, or publishing, and event is the first step in communicating with your application.
+<Card title="Learn how to send events" icon="rocket" href="/guides/sending-events">
+Get up to speed on sending events on Sailhouse.
+</Card>
+<Card title="Receive push events" icon="envelopes-bulk" href="/guides/receiving-push-events">
+Learn how to build handlers to securely process events sent from Sailhouse.
+</Card>
+</CardGroup>
 
-
-```ts
-client.publish("some-topic", {
-    some: "property",
-});
-```
-
-As mentioned above, an event must be sent to a topic. This directs your event to downstream subscribers, and acts as a "bucket" that your different types of events can live in. To read more fun things about topics, head over to [their concepts section](/concepts/topics).
-
-### Scheduling events
-
-You can schedule an event to be sent at a future time for a topic. This can be _any_ time in the future, and the event will not be sent to subscribers until that date.
-
-<Warning>
-The scheduled event will be sent to all subscribers present when it is scheduled for. If you add a subscriber inbetween after it has been sent, but before the scheduled time, it will be sent to that subscription.
-</Warning>
-
-<Tabs>
-<Tab title='TypeScript'>
-```ts
-client.publish('reminder-queue', {
-    user_id: '123'
-}, {
-    date: new Date() // some future date
-})
-```
-</Tab>
-<Tab title='Go'>
-```go
-err := client.Publish(
-    ctx,
-    "reminder-queue",
-    data,
-    // 5 days in the future
-    sailhouse.WithScheduledTime(time.Now().Add(time.Hour * 24 * 5)),
-)
-```
-</Tab>
-</Tabs>
-
-## Limitations
+### Limitations
 
 For non-enterprise customers, there is a maximum event size of **4mb** applied. However, if you're hitting this limitation it's likely an anti-pattern.
 
-## Metadata
+### Metadata
 <Note>
 This is currently in-development and not available for public access.
 </Note>
 
-Events can have metadata attached to them. For attaching trace-ids
+Events can have metadata attached to them. For example attaching trace-ids, or bundling publisher information.
+
+## Understanding events
+
+### Terminology
+
+To help clear things up, here's a list of the common
+
+- **Asychronous** - Processing in the background, in a non-blocking way
+- **Event-driven** - An application design which does most of it's logic asychronously in response to logical events
+- **Event** - A single package of data, sent to a topic
+
+
+### Best practices
+
+#### Commands vs Events
+
+Sailhouse is a flexible platform enabling event-driven behaviours. However, at it's core, it enables asy
+
+#### Building a good event

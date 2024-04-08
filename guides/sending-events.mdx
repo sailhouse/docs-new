@@ -1,0 +1,69 @@
+---
+title: Sending events
+---
+
+The best way to send events on Sailhouse is via our language-native SDKs. These wrap around our core HTTP APIs, and include some useful functionality such as streaming and batching.
+
+### Publishing events
+
+Sending, or publishing, and event is the first step in communicating with your application.
+
+<Tabs>
+<Tab title='TypeScript / JavaScript'>
+```ts
+await client.publish("some-topic", {
+    some: "property",
+});
+```
+</Tab>
+<Tab title='Go'>
+```go
+client.Publish("some-topic", map[string]string{
+    "some": "property"
+})
+```
+</Tab>
+<Tab title='Rust'>
+```rust
+let mut data = HashMap::new();
+data.insert("message", "Hello world!");
+
+let publish_future = client.publish("example-topic", data);
+```
+</Tab>
+</Tabs>
+
+As mentioned above, an event must be sent to a topic. This directs your event to downstream subscribers, and acts as a "bucket" that your different types of events can live in. To read more fun things about topics, head over to [their concepts section](/concepts/topics).
+
+Once an event is in a topic, it is sent to all the subscriptions of a topic. Say you have a `user-created` event, which you send when someone signs up to your application. You may have some subscriptions like `send-welcome-email` and `check-spam-score`. These subscriptions will both get a copy of the event, where it will sit until acknowledged in future.
+
+#### Scheduling events
+
+You can schedule an event to be sent at a future time for a topic. This can be _any_ time in the future, and the event will not be sent to subscribers until that date.
+
+<Warning>
+The scheduled event will be sent to all subscribers present when it is scheduled for. If you add a subscriber inbetween after it has been sent, but before the scheduled time, it will be sent to that subscription.
+</Warning>
+
+<Tabs>
+<Tab title='TypeScript'>
+```ts
+client.publish('reminder-queue', {
+    user_id: '123'
+}, {
+    date: new Date() // some future date
+})
+```
+</Tab>
+<Tab title='Go'>
+```go
+err := client.Publish(
+    ctx,
+    "reminder-queue",
+    data,
+    // 5 days in the future
+    sailhouse.WithScheduledTime(time.Now().Add(time.Hour * 24 * 5)),
+)
+```
+</Tab>
+</Tabs>
