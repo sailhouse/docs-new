@@ -60,6 +60,10 @@ The filter path is the simple JSON path to the property you want to filter on.
 | `order-created`       | `order.address.country` |
 | `application-updated` | `application.status`    |
 
+#### Metadata
+
+You can read from the metadata of the event by prefixing the path with `_metadata.`, for example `_metadata.source`.
+
 ### Filter Value
 
 The filter value is the value for a subscription to match on, following the examples above.
@@ -69,3 +73,7 @@ The filter value is the value for a subscription to match on, following the exam
 | `pro`      | Create the customer on stripe and start their trial.                                          |
 | `UK`       | For the UK, you may need to run extra logic for imports and taxes.                            |
 | `rejected` | When an application is rejected, we should email the candidate. Not all updates need contact. |
+
+#### Arrays
+
+Arrays will automatically be parsed as a list of values to match on. If any of the values match, the subscription will be triggered.
