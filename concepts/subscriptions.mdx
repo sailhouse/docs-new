@@ -64,6 +64,19 @@ The filter path is the simple JSON path to the property you want to filter on.
 
 You can read from the metadata of the event by prefixing the path with `_metadata.`, for example `_metadata.source`.
 
+#### Arrays
+
+If the path points to an array, the subscription will trigger if the filter value matches any of the elements in the array.
+
+For example, if the path is `roles`, and the filter value is `admin`, the subscription will trigger if the event has the property like so:
+
+```json
+{
+  "roles": ["admin", "user"]
+}
+```
+
+
 ### Filter Value
 
 The filter value is the value for a subscription to match on, following the examples above.
@@ -73,7 +86,3 @@ The filter value is the value for a subscription to match on, following the exam
 | `pro`      | Create the customer on stripe and start their trial.                                          |
 | `UK`       | For the UK, you may need to run extra logic for imports and taxes.                            |
 | `rejected` | When an application is rejected, we should email the candidate. Not all updates need contact. |
-
-#### Arrays
-
-Arrays will automatically be parsed as a list of values to match on. If any of the values match, the subscription will be triggered.
