@@ -78,6 +78,102 @@
           }
         }
       }
+    },
+    "/topics/{topic}/subscriptions/{subscription}/events": {
+      "get": {
+        "description": "Gets events from a subscription",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "topic",
+            "in": "path",
+            "description": "The topic to get events from",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "subscription",
+            "in": "path",
+            "description": "The subscription to get events from",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The maximum number of events to return",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of events to skip",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Events retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The event ID"
+                      },
+                      "topic_id": {
+                        "type": "string",
+                        "description": "The ID of the topic the event was posted to"
+                      },
+                      "timestamp": {
+                        "type": "string",
+                        "description": "The timestamp the event was posted"
+                      },
+                      "data": {
+                        "type": "object",
+                        "description": "The data of the event"
+                      },
+                      "metadata": {
+                        "type": "object",
+                        "description": "The metadata of the event"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+
+      }
     }
   },
   "components": {

@@ -101,7 +101,8 @@
     {
       "group": "Events",
       "pages": [
-        "api-reference/events/send"
+        "api-reference/events/send",
+        "api-reference/events/sub-get"
       ]
     },
     {
