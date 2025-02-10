@@ -89,11 +89,6 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Community",
-          "href": "https://discord.gg/UyvsfJUE93",
-          "icon": "discord"
-        },
-        {
           "anchor": "Blog",
           "href": "https://sailhouse.dev/blog",
           "icon": "newspaper"
