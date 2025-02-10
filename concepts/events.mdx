@@ -23,11 +23,10 @@ Learn how to build handlers to securely process events sent from Sailhouse.
 For non-enterprise customers, there is a maximum event size of **4mb** applied. However, if you're hitting this limitation it's likely an anti-pattern.
 
 ### Metadata
-<Note>
-This is currently in-development and not available for public access.
-</Note>
 
 Events can have metadata attached to them. For example attaching trace-ids, or bundling publisher information.
+
+It's used by [cron jobs](/guides/cron-jobs) to populate information about the triggered cron.
 
 ## Understanding events
 
@@ -39,11 +38,55 @@ To help clear things up, here's a list of the common
 - **Event-driven** - An application design which does most of it's logic asychronously in response to logical events
 - **Event** - A single package of data, sent to a topic
 
+### Commands vs Events
 
-### Best practices
+When it comes to building event-driven applications, you'll probably come across the concepts of **Commands** and **Events**.
 
-#### Commands vs Events
+Sailhouse is a flexible platform enabling event-driven behaviours. At it's core, it enables any publish / subscribing pattern, and most real-world applications will have a blend of both.
 
-Sailhouse is a flexible platform enabling event-driven behaviours. However, at it's core, it enables asy
+#### Commands
 
-#### Building a good event
+Commands are a way of instructing behaviour in an application - where the publishing of which is directly triggering specific behaviour.
+
+Think of a topic such as `backup-users`, which triggers a specific operation. Unlike events which notify about something that has happened, commands explicitly tell your system to do something.
+
+Common command patterns include:
+- User actions: `send-email`, `process-payment`, `generate-report`
+- System operations: `backup-database`, `clear-cache`, `sync-inventory`
+- Scheduled tasks: `daily-cleanup`, `refresh-analytics`
+
+A typical command payload should contain all the necessary information for the operation to be performed:
+
+```json
+// send-email
+{
+  "recipient": "user@example.com",
+  "template_id": "welcome_001",
+  "variables": {
+    "user_name": "Jane Smith",
+    "activation_link": "https://example.com/activate/abc123"
+  }
+}
+```
+
+#### Events
+
+Events represent something that has happened in your system. Unlike commands which instruct specific behaviour, events are notifications that other parts of your system can react to.
+
+For example, a topic like `user-created` indicates that a new user has been registered. Multiple services might be interested in this event:
+- An email service could send a welcome message
+- A analytics service could update user metrics
+- A notification service could send a slack message to let you know someone has signed up
+
+This decoupled nature of events means your system becomes more maintainable and scalable - new functionality can be added by simply subscribing to existing events, without modifying the original publishing code.
+
+Here's what a typical event payload might look like:
+
+```json
+// user-created
+{
+  "user_id": "usr_789xyz",
+  "email": "jane@example.com",
+  "signup_source": "web"
+}
+```
