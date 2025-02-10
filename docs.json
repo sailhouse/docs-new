@@ -25,7 +25,8 @@
             "pages": [
               "guides/sending-events",
               "guides/receiving-push-events",
-              "guides/scheduling-events"
+              "guides/scheduling-events",
+              "guides/cron-jobs"
             ]
           },
           {

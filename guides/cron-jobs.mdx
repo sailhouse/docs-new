@@ -1,0 +1,71 @@
+---
+title: Cron jobs (beta)
+---
+
+<Info>
+This feature is currently in **private** beta, to enable, please [contact us](mailto:support@sailhouse.dev).
+</Info>
+
+Cron jobs on Sailhouse allow you to, on a regular schedule, fire events into topics to trigger regular behaviour.
+
+If you want to send a daily email roundup at 9am, or calculate usage every hour, cron jobs are the perfect way to do this.
+
+## Creating a cron job
+
+To define a cron, you can head to **Apps** -> `your_app` -> **Crons**, and click on **Create cron**.
+
+<Frame caption="An app which has two existing cron jobs">
+<img src="/images/create-cron.png"/>
+</Frame>
+
+Here, you can define a name, the target topic, and the frequency of which it's triggered.
+
+For example, here is a daily cron which runs at **1:30am UTC**.
+
+<Frame>
+<img src="/images/create-cron-modal.png" />
+</Frame>
+
+<Info>
+All cron jobs are triggered in **UTC** time
+</Info>
+
+## Handling a cron event
+
+With cron events firing into regular [Sailhouse topics](/concepts/topics), you can subscribe to them as normal.
+
+The event that's published contains useful metadata about the cron that triggered it.
+
+```json
+{
+  "cron_id": "2hfy70ox3i5y",
+  "cron_name": "Every 30 minutes",
+  "cron_schedule": "0 */30 * * *"
+}
+```
+
+You can read more about [subscribing to topics here.](/concepts/subscriptions)
+
+## Editing a cron job
+
+From the cron job page, you can edit the **name** and **schedule** of the cron, as well pausing/resuming on demand.
+
+## Q&A
+
+### When will cron jobs be released?
+
+Cron jobs aim to launch within Q1 2025.
+
+### What's the minimum amount of time between a cron run?
+
+There is a hard system limitation of **1 minute** between subsequent runs.
+
+Any definitions with shorter durations than this will run at 1 minute intervals.
+
+### What if the events are unacknowledged?
+
+As the topic the cron fires into is a regular topic, these will build up as per usual on subscriptions.
+
+### Can I manually fire the cron?
+
+As it's a normal topic, you can fire an event in as per usual! Just make sure to match the data/metadata if you depend on it.
