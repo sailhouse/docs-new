@@ -1,0 +1,137 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Sailhouse",
+  "colors": {
+    "primary": "#ff8e3c",
+    "light": "#ff8e3c",
+    "dark": "#ff8e3c"
+  },
+  "favicon": "/favicon.png",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/sending-events",
+              "guides/receiving-push-events",
+              "guides/scheduling-events"
+            ]
+          },
+          {
+            "group": "Concepts",
+            "pages": [
+              "concepts/topics",
+              "concepts/subscriptions",
+              "concepts/events",
+              "concepts/self-healing"
+            ]
+          },
+          {
+            "group": "SDKs",
+            "pages": [
+              "sdks/introduction",
+              "sdks/typescript",
+              "sdks/go",
+              "sdks/rust"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "reference/faq",
+              "reference/tokens"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "API Documentation",
+            "pages": [
+              "api-reference/introduction"
+            ]
+          },
+          {
+            "group": "Events",
+            "pages": [
+              "api-reference/events/send",
+              "api-reference/events/sub-get"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "CLI",
+        "groups": [
+          {
+            "group": "CLI Documentation",
+            "pages": [
+              "cli-reference/introduction"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Community",
+          "href": "https://discord.gg/UyvsfJUE93",
+          "icon": "discord"
+        },
+        {
+          "anchor": "Blog",
+          "href": "https://sailhouse.dev/blog",
+          "icon": "newspaper"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "api": {
+    "openapi": [
+      "api-reference/openapi.json"
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "mailto:support@sailhouse.dev"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://app.sailhouse.dev"
+    }
+  },
+  "footer": {
+    "socials": {
+      "twitter": "https://twitter.com/sailhousedev",
+      "github": "https://github.com/sailhouse",
+      "linkedin": "https://www.linkedin.com/company/sailhousedev"
+    }
+  },
+  "integrations": {
+    "plausible": {
+      "domain": "docs.sailhouse.dev"
+    }
+  }
+}
