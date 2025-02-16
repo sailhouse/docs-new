@@ -42,9 +42,10 @@
             "group": "SDKs",
             "pages": [
               "sdks/introduction",
-              "sdks/typescript",
               "sdks/go",
-              "sdks/rust"
+              "sdks/python",
+              "sdks/rust",
+              "sdks/typescript"
             ]
           },
           {

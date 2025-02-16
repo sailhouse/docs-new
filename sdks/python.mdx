@@ -1,0 +1,145 @@
+---
+title: Python
+icon: python
+---
+
+## Installing
+
+The SDK is available on PyPI, so you can install it using pip:
+
+```bash
+pip install sailhouse
+```
+
+## Basic Usage
+
+### Importing
+
+The main components are available directly from the `sailhouse` package.
+
+```python
+from sailhouse import SailhouseClient
+```
+
+### Initialising the Client
+
+The package provides a `SailhouseClient` class which contains all methods for interacting with the Sailhouse platform.
+
+After generating a [token](/reference/tokens), you can create a client instance:
+
+```python
+import os
+from sailhouse import SailhouseClient
+
+client = SailhouseClient(
+    token=os.getenv("SAILHOUSE_TOKEN")
+)
+```
+
+The client can be customised with optional parameters:
+- `timeout`: Request timeout in seconds (default: 5.0)
+
+### Sending an event
+
+Use the `publish()` method to send data to a topic. The method is async, so you'll need to use it with `await`:
+
+```python
+import asyncio
+from datetime import datetime
+
+async def main():
+    data = {
+        "text": "example contents",
+        "object": {
+            "key": "value"
+        }
+    }
+
+    # Basic publish
+    await client.publish("some-topic", data)
+
+    # Publishing with optional parameters
+    await client.publish(
+        "some-topic",
+        data,
+        scheduled_time=datetime(2025, 12, 31),
+        metadata={"source": "example"}
+    )
+
+asyncio.run(main())
+```
+
+The `data` argument must be a dictionary that can be serialized to JSON. The method also accepts optional parameters:
+- `scheduled_time`: A datetime object for scheduled message delivery
+- `metadata`: Additional metadata as a dictionary
+
+### Receiving events from a pull subscription
+
+The `get_events()` method allows you to fetch events from a subscription:
+
+```python
+from dataclasses import dataclass
+import asyncio
+
+@dataclass
+class Message:
+    text: str
+
+async def main():
+    response = await client.get_events(
+        "awesome-example",
+        "awesome-pull",
+        limit=20,
+        offset=0,
+        time_window="1h"
+    )
+
+    for event in response.events:
+        # Convert event data to your type
+        message = event.as_type(Message)
+        print(message.text)
+
+        # Acknowledge the message
+        await event.ack()
+
+asyncio.run(main())
+```
+
+The `get_events()` method accepts several optional parameters:
+- `limit`: Maximum number of events to retrieve
+- `offset`: Number of events to skip
+- `time_window`: Time window for event retrieval (e.g., "1h", "24h")
+
+### Subscribing to events
+
+The SDK provides a convenient way to continuously process events using the `subscribe()` method:
+
+```python
+import asyncio
+from sailhouse import Event
+
+async def handle_event(event: Event):
+    print(f"Received event: {event.data}")
+    await event.ack()
+
+async def handle_error(error: Exception):
+    print(f"Error occurred: {error}")
+
+async def main():
+    await client.subscribe(
+        "awesome-example",
+        "awesome-subscription",
+        handler=handle_event,
+        polling_interval=5.0,
+        on_error=handle_error,
+        exit_on_error=False
+    )
+
+asyncio.run(main())
+```
+
+The `subscribe()` method accepts several parameters:
+- `handler`: Callback function to process each event
+- `polling_interval`: Time between polling attempts in seconds (default: 5.0)
+- `on_error`: Optional error handler function
+- `exit_on_error`: Whether to exit on error (default: False)
