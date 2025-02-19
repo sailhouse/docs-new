@@ -23,10 +23,11 @@
           {
             "group": "Guides",
             "pages": [
+              "guides/cron-jobs",
+              "guides/pulling-events",
               "guides/sending-events",
               "guides/receiving-push-events",
-              "guides/scheduling-events",
-              "guides/cron-jobs"
+              "guides/scheduling-events"
             ]
           },
           {
@@ -69,6 +70,7 @@
           {
             "group": "Events",
             "pages": [
+              "api-reference/events/pull",
               "api-reference/events/send",
               "api-reference/events/sub-get"
             ]

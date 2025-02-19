@@ -174,7 +174,113 @@
         }
 
       }
+    },
+    "/topics/{topic}/subscriptions/{subscription}/events/pull": {
+  "get": {
+    "description": "Pulls a single unacknowledged event from a pull subscription, and locks it for 30 seconds.",
+    "security": [
+      {
+        "apiKey": []
+      }
+    ],
+    "parameters": [
+      {
+        "name": "topic",
+        "in": "path",
+        "description": "The topic to pull events from",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "subscription",
+        "in": "path",
+        "description": "The subscription to pull events from",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "time_window",
+        "in": "query",
+        "description": "The time window for event hydration (e.g. '1h', '30m')",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Event successfully pulled",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The event ID"
+                },
+                "topic_id": {
+                  "type": "string",
+                  "description": "The ID of the topic the event was posted to"
+                },
+                "timestamp": {
+                  "type": "string",
+                  "description": "The timestamp the event was posted"
+                },
+                "data": {
+                  "type": "object",
+                  "description": "The decrypted data of the event"
+                },
+                "metadata": {
+                  "type": "object",
+                  "description": "The metadata of the event"
+                }
+              }
+            }
+          }
+        }
+      },
+      "204": {
+        "description": "No unacknowledged events available"
+      },
+      "400": {
+        "description": "Invalid request parameters or subscription type",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized - invalid or missing authentication",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Forbidden - app is blocked",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
     }
+  }
+}
   },
   "components": {
     "schemas": {

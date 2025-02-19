@@ -1,0 +1,64 @@
+---
+title: Pulling Events
+description: Learn how to pull and process events from pull subscriptions
+---
+
+Pull subscriptions allow you to actively retrieve events from Sailhouse when your application is ready to process them. This pattern is particularly useful for background workers or batch processing systems.
+
+## Pulling Individual Events
+
+When you pull an event from a subscription, Sailhouse implements a lock mechanism to ensure reliable processing:
+
+```ts
+const event = await client.pull('my-topic', 'my-subscription');
+```
+
+Each pulled event is automatically locked for 30 seconds. During this lock period:
+
+- The event is invisible to other consumers
+- Your application has exclusive access to process the event
+- You must either acknowledge or abandon the event before the lock expires
+
+<Note>
+If the lock expires before acknowledgment, the event automatically returns to the front of the queue and becomes available for processing again.
+</Note>
+
+### Lock Behaviour
+
+Here's how the locking mechanism works:
+
+1. You pull an event from the subscription
+2. Sailhouse applies a 30-second lock
+3. One of three things happens:
+   - You acknowledge the event → Event is removed from the queue
+   - You abandon the event → Event returns to the queue immediately
+   - Lock expires → Event returns to the front of the queue automatically
+
+```ts
+// Example of pulling and acknowledging an event
+const event = await subscription.client.pull('user-created', 'send-welcome-email');
+
+try {
+    // Process the event
+    await processEvent(event);
+
+    // Acknowledge successful processing
+    await event.ack();
+} catch (error) {
+    // Event will automatically return to queue after lock expires
+    console.error('Failed to process event:', error);
+}
+```
+
+<Warning>
+If your processing takes over 30 seconds, you can configure the lock window on the subscription settings.
+</Warning>
+
+This locking mechanism helps prevent:
+- Double-processing of events
+- Lost events due to consumer failures
+- Race conditions in multi-consumer scenarios
+
+<Card title="Need longer processing times?" icon="clock">
+Contact [support@sailhouse.dev](mailto:support@sailhouse.dev) to discuss custom lock durations for your use case.
+</Card>
