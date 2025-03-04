@@ -75,7 +75,7 @@ The `data` argument must be a dictionary that can be serialized to JSON. The met
 
 ### Receiving events from a pull subscription
 
-The `get_events()` method allows you to fetch events from a subscription:
+The `pull()` method allows you to fetch, and lock for procesing, a single event from a subscription:
 
 ```python
 from dataclasses import dataclass
@@ -86,21 +86,15 @@ class Message:
     text: str
 
 async def main():
-    response = await client.get_events(
-        "awesome-example",
-        "awesome-pull",
-        limit=20,
-        offset=0,
-        time_window="1h"
+    event = await client.pull(
+        "user-created",
+        "send-welcome-email"
     )
 
-    for event in response.events:
-        # Convert event data to your type
-        message = event.as_type(Message)
-        print(message.text)
+    message = event.as_type(Message)
+    print(message.text)
 
-        # Acknowledge the message
-        await event.ack()
+    await event.ack()
 
 asyncio.run(main())
 ```
