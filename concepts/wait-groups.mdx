@@ -52,7 +52,20 @@ await client.wait("review-completed", [
 
 Wait-groups are a on-demand concept in Sailhouse, meaning they're not a consistent resource like topics or subscriptions, rather they're created and completed on-demand with no grouping to them.
 
-This gives huge flexibility into the flows that you create - in our PR review example, not every pull request may need tests reviewing - so you trigger one missing that event.
+This gives huge flexibility into the flows that you create - in our PR review example, not every pull request may need tests reviewing - so we can create a wait group without that event. 
+
+```ts
+await client.wait("review-completed", [
+  {
+    topic: "trigger-security-review",
+    body: { pull_request_id: 123 },
+  },
+  {
+    topic: "trigger-style-review",
+    body: { pull_request_id: 123 },
+  },
+]);
+```
 
 With that, creating a wait-group involves a few concepts
 
@@ -70,7 +83,7 @@ A wait group will complete as soon as an event is acknowledged by any subscripti
     <img src="/images/wait-groups.png" />
 </Frame>
 
-When all events have been acked atleast once, or the `ttl` has been lapsed, an event will be fired into the specified `topic` attached to a wait group.
+When all events have been acked at least once, or the `ttl` has been lapsed, an event will be fired into the specified `topic` attached to a wait group.
 
 <Info>
     Although `ttl` is optional, it is highly recommended one is used to prevent any incomplete flows of logic in your application.
