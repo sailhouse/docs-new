@@ -63,7 +63,7 @@ With that, creating a wait-group involves a few concepts
 
 ## Completing a wait group
 
-A wait group will complete as soon as an event is acknowledged by any subscription in it's related topic.
+A wait group will complete as soon as an event is acknowledged by any subscription in it's related topic. Subsequent acknowledgements of the same event will have no impact on the wait group.
 
 When all events have been acked atleast once, or the `ttl` has been lapsed, an event will be fired into the specified `topic` attached to a wait group.
 
