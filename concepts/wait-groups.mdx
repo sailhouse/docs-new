@@ -1,0 +1,72 @@
+---
+title: Wait groups
+---
+
+Wait groups are a way to fan-out behaviour, and be notified once it's all completed.
+
+This is particularly useful in agentic applications, or more standard bulk-processing, where you want to parallelise processing and then perform an action after, while still benefiting from asynchronous, event-driven behaviours.
+
+## What is a wait group?
+
+At it's core, a wait group is a list of events which, upon completion, will trigger an event to be fired into another topic.
+
+Consider building an agent which reviews pull requests. For best results, you'll have a number of different prompts which look at specific concerns.
+
+- **Security review** - This prompt is concerned with checking for missing authentication checks, SQL injection opportunities etc.
+- **Style review** - This prompt makes sure the code matches the style guidelines, appropriate variable names, appropriate directory structure etc.
+- **Test review** - This prompt makes sure there's sufficient test coverage, the test cases cover sensible paths
+
+For this to be performant, you'll want these all to be done in parallel - but how do you enable that?
+
+Without wait groups, you have a few options:
+
+- **Check if all other steps have been completed** - after each review is complete, you can check to see if all the others are finished before sending the review
+  - This results in a lot of duplicate checks
+  - You have to ensure any new checks added are included
+  - You could end in a race condition if you're not careful
+- **Do it in one call** - using the parallel features in your programming language of choice
+  - Lose all the benefits of an event-driven system powering this logic
+  - Retries will result in extra calls which aren't necessary
+  - Extra overhead in the code
+
+With a wait-group on Sailhouse, you can use a wait-group to send an event to `review-completed` when all the checks have finished.
+
+```ts
+await client.wait("review-completed", [
+  {
+    topic: "trigger-security-review",
+    body: { pull_request_id: 123 },
+  },
+  {
+    topic: "trigger-style-review",
+    body: { pull_request_id: 123 },
+  },
+  {
+    topic: "trigger-test-review",
+    body: { pull_request_id: 123 },
+  },
+]);
+```
+
+## Creating a wait group
+
+Wait-groups are a on-demand concept in Sailhouse, meaning they're not a consistent resource like topics or subscriptions, rather they're created and completed on-demand with no grouping to them.
+
+This gives huge flexibility into the flows that you create - in our PR review example, not every pull request may need tests reviewing - so you trigger one missing that event.
+
+With that, creating a wait-group involves a few concepts
+
+- `topic` - the topic you want to fire an event to when the events are completed
+- `events` - the actual events you want to be part of a wait group, with a topic & body pairing to go with them
+- `options` - optional properties
+  - `ttl` - a duration, in seconds, for how long to wait before auto-completing a wait group if not all events have been processed
+
+## Completing a wait group
+
+A wait group will complete as soon as an event is acknowledged by any subscription in it's related topic.
+
+When all events have been acked atleast once, or the `ttl` has been lapsed, an event will be fired into the specified `topic` attached to a wait group.
+
+<Info>
+    Although `ttl` is optional, it is highly recommended one is used to prevent any incomplete flows of logic in your application.
+</Info>
