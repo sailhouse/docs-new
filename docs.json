@@ -7,6 +7,9 @@
     "light": "#ff8e3c",
     "dark": "#ff8e3c"
   },
+  "contextual": {
+    "options": ["copy", "view"]
+  },
   "favicon": "/favicon.png",
   "navigation": {
     "tabs": [
