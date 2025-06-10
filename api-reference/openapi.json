@@ -1,38 +1,21 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.0.0",
   "info": {
-    "title": "Sailhouse Public Schema",
-    "description": "",
-    "license": {
-      "name": "MIT"
-    },
+    "title": "Sailhouse API",
+    "description": "Generated API documentation for Sailhouse",
     "version": "1.0.0"
   },
-  "servers": [
-    {
-      "url": "https://api.sailhouse.dev"
-    }
-  ],
-  "security": [
-    {
-      "bearerAuth": [],
-      "apiKey": []
-    }
-  ],
   "paths": {
-    "/topics/{topic}/events": {
+    "/topics/{topic_slug}/events": {
       "post": {
-        "description": "Posts an event to a topic",
-        "security": [
-          {
-            "apiKey": []
-          }
-        ],
+        "tags": ["events"],
+        "summary": "Send an event",
+        "description": "Send an event to Sailhouse",
+        "operationId": "IngestEvent",
         "parameters": [
           {
-            "name": "topic",
+            "name": "topic_slug",
             "in": "path",
-            "description": "The topic to post to",
             "required": true,
             "schema": {
               "type": "string"
@@ -40,315 +23,246 @@
           }
         ],
         "requestBody": {
-          "description": "Event to post",
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "required": ["data"],
-                "properties": {
-                  "data": {
-                    "type": "object"
-                  },
-                  "metadata": {
-                    "type": "object"
-                  },
-                  "send_at": {
-                    "type": "string",
-                    "format": "date-time",
-                    "description": "The time at which the event should be sent"
-                  }
-                }
+                "$ref": "#/components/schemas/SendEventRequest"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
-            "description": "Event posted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/topics/{topic}/subscriptions/{subscription}/events/{id}/ack": {
-      "post": {
-        "description": "Acknowledge an event against a subscription",
-        "parameters": [
-          {
-            "name": "topic",
-            "in": "path",
-            "description": "The topic to acknowledge an event from",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "subscription",
-            "in": "path",
-            "description": "The subscription to acknowledge an event from",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "description": "The id of the event to acknowledge",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Event acknowledged"
-          }
-        }
-      }
-    },
-    "/topics/{topic}/subscriptions/{subscription}/events": {
-      "get": {
-        "description": "Gets events from a subscription",
-        "security": [
-          {
-            "apiKey": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "topic",
-            "in": "path",
-            "description": "The topic to get events from",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "subscription",
-            "in": "path",
-            "description": "The subscription to get events from",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "The maximum number of events to return",
-            "required": false,
-            "schema": {
-              "type": "integer"
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "description": "The number of events to skip",
-            "required": false,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Events retrieved",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string",
-                        "description": "The event ID"
-                      },
-                      "topic_id": {
-                        "type": "string",
-                        "description": "The ID of the topic the event was posted to"
-                      },
-                      "timestamp": {
-                        "type": "string",
-                        "description": "The timestamp the event was posted"
-                      },
-                      "data": {
-                        "type": "object",
-                        "description": "The data of the event"
-                      },
-                      "metadata": {
-                        "type": "object",
-                        "description": "The metadata of the event"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/SendEventResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/topics/{topic}/subscriptions/{subscription}/events/pull": {
-      "get": {
-        "description": "Pulls a single unacknowledged event from a pull subscription, and locks it for 30 seconds.",
-        "security": [
-          {
-            "apiKey": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "topic",
-            "in": "path",
-            "description": "The topic to pull events from",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "subscription",
-            "in": "path",
-            "description": "The subscription to pull events from",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "time_window",
-            "in": "query",
-            "description": "The time window for event hydration (e.g. '1h', '30m')",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Event successfully pulled",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string",
-                      "description": "The event ID"
-                    },
-                    "topic_id": {
-                      "type": "string",
-                      "description": "The ID of the topic the event was posted to"
-                    },
-                    "timestamp": {
-                      "type": "string",
-                      "description": "The timestamp the event was posted"
-                    },
-                    "data": {
-                      "type": "object",
-                      "description": "The decrypted data of the event"
-                    },
-                    "metadata": {
-                      "type": "object",
-                      "description": "The metadata of the event"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "204": {
-            "description": "No unacknowledged events available"
-          },
-          "400": {
-            "description": "Invalid request parameters or subscription type",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+            "description": "Bad Request"
           },
           "401": {
-            "description": "Unauthorized - invalid or missing authentication",
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/topics/{topic_slug}/subscriptions/{subscription_slug}/events/pull": {
+      "get": {
+        "tags": ["events"],
+        "summary": "Pull an event",
+        "description": "Pull an event, locking it for 30s",
+        "operationId": "PullEvent",
+        "parameters": [
+          {
+            "name": "topic_slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "subscription_slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/PullEventResponse"
                 }
               }
             }
           },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
           "403": {
-            "description": "Forbidden - app is blocked",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/topics/{topic_slug}/subscriptions/{subscription_slug}/events/{event_id}": {
+      "post": {
+        "tags": ["events"],
+        "summary": "Acknowledge an event",
+        "description": "Acknowledge an event, marking it as processed for a subscription",
+        "operationId": "AcknowledgeEvent",
+        "parameters": [
+          {
+            "name": "topic_slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "subscription_slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
-        }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     }
   },
   "components": {
     "schemas": {
-      "Error": {
-        "required": ["error", "message"],
+      "PullEventResponse": {
         "type": "object",
         "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
+          "data": {
+            "type": "object"
           },
-          "message": {
+          "id": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "The timestamp of the event, in RFC3339 format"
+          },
+          "topic_id": {
             "type": "string"
           }
-        }
+        },
+        "required": ["id", "topic_id", "data", "metadata", "timestamp"]
+      },
+      "SendEventRequest": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "description": "The event data, as a JSON object"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata for the event"
+          },
+          "send_at": {
+            "type": "string",
+            "nullable": true,
+            "description": "RFC3339 formatted string for when the event should be sent to subscriptions"
+          },
+          "wait_group_instance_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID of the wait group instance to which this event should be added to"
+          }
+        },
+        "required": ["data"]
+      },
+      "SendEventResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The ID of the event that was sent."
+          }
+        },
+        "required": ["id"]
       }
     },
     "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
-      },
       "apiKey": {
         "type": "apiKey",
         "in": "header",
         "name": "Authorization"
+      },
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
       }
     }
-  }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "servers": [
+    {
+      "url": "https://api.sailhouse.dev"
+    }
+  ]
 }
