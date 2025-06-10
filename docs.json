@@ -64,11 +64,14 @@
             "pages": ["api-reference/introduction"]
           },
           {
-            "group": "Events",
+            "group": "Sending events",
+            "pages": ["api-reference/events/send"]
+          },
+          {
+            "group": "Processing",
             "pages": [
-              "api-reference/events/pull",
-              "api-reference/events/send",
-              "api-reference/events/sub-get"
+              "api-reference/processing-events/pull",
+              "api-reference/processing-events/ack"
             ]
           }
         ]
