@@ -1,0 +1,134 @@
+---
+title: Tracing events
+---
+
+In both distributed, and complex systems, tracing events is crucial for understanding the flow of requests and identifying performance bottlenecks.
+
+Products like Honeycomb, Datadog, Sentry and Grafana Tempo are popular choices for visualising and analysing traces.
+
+## Open Telemetry
+
+OpenTelemetry, or OTEL, is a standard for instrumenting applications to generate telemetry data.
+
+It provides a set of SDKs across multiple languages for producing telemetry data consumable by various observability tools.
+
+Events sent over Sailhouse can be traced using OpenTelemetry, utilising their propogation API.
+
+<Note>
+    Although the examples below can be used in every invocation, setting up a global package/module which handles common orchestration logic like this will make it easier to modify this behaviour in the future.
+</Note>
+
+### Utilising metadata
+
+Events on Sailhouse have an optional metadata object that can be used to add additional context to the event.
+
+<Tabs>
+<Tab title='TypeScript'>
+```typescript
+import { propagation, context } from '@opentelemetry/api';
+
+const output = {};
+
+// context.active() is the current context that a span is running in.
+propagation.inject(context.active(), output);
+
+await sailhouse.publish("document-analysed", {
+  team_id: team.id,
+  document_id: documentId,
+}, {
+  metadata: {
+    // You could pass in the whole of output, but `traceparent` and
+    // `tracestate` are the most important fields.
+    tracedata: {
+      traceparent: output.traceparent,
+      tracestate: output.tracestate,
+    },
+  }
+});
+```
+</Tab>
+<Tab title='Go'>
+```go
+import (
+	"context"
+	"go.opentelemetry.io/otel/propagation"
+)
+
+func analyseDocument(ctx context.Context) error {
+	// Create a map to inject trace context into
+	carrier := make(map[string]string)
+
+	// Inject the current trace context into the carrier
+	propagation.TraceContext{}.Inject(ctx, propagation.MapCarrier(carrier))
+
+	// Convert to map[string]any for metadata
+	metadata := make(map[string]any)
+	for k, v := range carrier {
+		metadata[k] = v
+	}
+
+	// Publish event with trace metadata
+	_, err := sailhouse.Publish(ctx, "document-analysed", map[string]any{
+		"team_id":     team.ID,
+		"document_id": documentID,
+	}, sailhouse.WithMetaData(map[string]any{
+		"tracedata": metadata,
+	}))
+
+	return err
+}
+```
+</Tab>
+</Tabs>
+
+
+When processing an event, you can extract the trace information from the metadata object and use it to continue the trace.
+
+<Tabs>
+<Tab title='TypeScript'>
+```typescript
+const event = await sailhouse.pull(
+  "document-analysed",
+  "summarise-document",
+);
+
+const { tracedata } = event.metadata;
+
+const traceContext = propagation.extract(context.active(), tracedata);
+```
+</Tab>
+<Tab title='Go'>
+```go
+import (
+ "context"
+ "go.opentelemetry.io/otel/propagation"
+)
+
+func processEvent(ctx context.Context) error {
+ event, err := sailhouse.Pull(ctx, "document-analysed", "summarise-document")
+ if err != nil {
+  return err
+ }
+
+ // Extract trace data from metadata
+ tracedata, ok := event.Metadata["tracedata"].(map[string]any)
+ if !ok {
+  return nil // No trace data available
+ }
+
+ // Convert to string map for propagation
+ carrier := make(map[string]string)
+ for k, v := range tracedata {
+  if str, ok := v.(string); ok {
+   carrier[k] = str
+  }
+ }
+
+ // Extract trace context
+ traceContext := propagation.TraceContext{}.Extract(ctx, propagation.MapCarrier(carrier))
+
+ return nil
+}
+```
+</Tab>
+</Tabs>

@@ -51,6 +51,10 @@
             ]
           },
           {
+            "group": "Observability",
+            "pages": ["observability/tracing"]
+          },
+          {
             "group": "Reference",
             "pages": ["reference/faq", "reference/tokens"]
           }
