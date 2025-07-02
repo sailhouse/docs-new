@@ -53,6 +53,10 @@ To verify:
 4. Calculate HMAC-SHA256 using your webhook secret
 5. Compare signatures using constant-time comparison
 
+<Note>
+The timestamp in the signature represents when Sailhouse attempted to deliver the webhook, not when the original event was received. This ensures each delivery attempt has a unique signature.
+</Note>
+
 ### Example verification
 
 ```ts
