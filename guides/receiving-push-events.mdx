@@ -15,7 +15,7 @@ Sailhouse sends a `POST` request to the endpoint specified in the subscription. 
 
 The data of your event is sent within the body, alongside some additional headers.
 
-- `sh-signature` - App-specific signature to verify the source of the request
+- `Sailhouse-Signature` - HMAC signature to verify the request authenticity and prevent replay attacks
 - `identifier` - Checksum combining the event ID, subscription and time sent - globally unique for your application
 - `event-id` - ID of the event
 
@@ -33,49 +33,120 @@ app.post("/api/send-welcome-email", async (req, res) => {
 
 ## Security
 
-To ensure the request has come from Sailhouse, you can check the `sh-signature` header of the incoming request against the Signature visible in your app settings.
+To ensure the request has come from Sailhouse, you should verify the `Sailhouse-Signature` header using HMAC-SHA256. This provides cryptographic proof that the webhook came from Sailhouse and prevents replay attacks.
 
 <Warning>
-This is a sensitive value that should not be publically available. You can always re-generate this signature.
+Your webhook secret is sensitive and should not be publically available. Store it securely like any other secret in your application.
 </Warning>
 
-To view your app's signature in [the dashboard](https://app.sailhouse.dev), navigate to **Home** -> **Apps** -> _Select your app_ -> **Settings**.
+### How signature verification works
 
-Use this value within your application, as you would with any other secret. This could be via environment variables, or a managed solution like Google Secrets Manager.
+The `Sailhouse-Signature` header contains a timestamp and signature in this format:
+```
+Sailhouse-Signature: t=1699564800,v1=5257a869e7ecbebfe9013b2a4e3c4217c7a1e3b12f5c8e9a6d4b3f2a1e0d9c8b
+```
+
+To verify:
+1. Extract the timestamp and signature from the header
+2. Check the timestamp isn't too old (prevent replay attacks)
+3. Create the signed payload: `<timestamp>.<request_body>`
+4. Calculate HMAC-SHA256 using your webhook secret
+5. Compare signatures using constant-time comparison
+
+<Note>
+The timestamp in the signature represents when Sailhouse attempted to deliver the webhook, not when the original event was received. This ensures each delivery attempt has a unique signature.
+</Note>
+
+### Example verification
 
 ```ts
+import crypto from 'crypto';
 import express from 'express';
 
 const app = express();
 
-app.use(express.json());
+// Important: Use raw body for signature verification
+app.use(express.raw({ type: 'application/json' }));
+
+function verifyWebhookSignature(secret: string, header: string, body: string, tolerance = 300): boolean {
+  // Parse the header
+  const elements = header.split(',');
+  let timestamp: number | undefined;
+  let signature: string | undefined;
+
+  for (const element of elements) {
+    const [key, value] = element.split('=');
+    if (key === 't') timestamp = parseInt(value);
+    if (key === 'v1') signature = value;
+  }
+
+  if (!timestamp || !signature) {
+    throw new Error('Invalid signature header');
+  }
+
+  // Check timestamp tolerance (default: 5 minutes)
+  const currentTime = Math.floor(Date.now() / 1000);
+  if (currentTime - timestamp > tolerance) {
+    throw new Error('Webhook timestamp too old');
+  }
+
+  // Calculate expected signature
+  const payload = `${timestamp}.${body}`;
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex');
+
+  // Constant-time comparison to prevent timing attacks
+  return crypto.timingSafeEqual(
+    Buffer.from(expectedSignature),
+    Buffer.from(signature)
+  );
+}
 
 app.post("/api/send-welcome-email", async (req, res) => {
-    const event = req.body;
-    const shSignature = req.headers['sh-signature'];
-    const sailhouseSignature = process.env.SAILHOUSE_SIGNATURE;
+  const signature = req.headers['sailhouse-signature'] as string;
+  const body = req.body.toString();
 
-    if (shSignature !== sailhouseSignature) {
-        return res.status(403).json({ error: 'Unauthorized' });
+  try {
+    const isValid = verifyWebhookSignature(
+      process.env.WEBHOOK_SECRET!,
+      signature,
+      body
+    );
+
+    if (!isValid) {
+      return res.status(401).json({ error: 'Invalid signature' });
     }
 
-    // ...
-})
+    // Parse and process the event
+    const event = JSON.parse(body);
+    // ... handle your event ...
+
+    res.status(200).send('OK');
+  } catch (error) {
+    res.status(400).json({ error: 'Bad request' });
+  }
+});
 ```
 
 <Note>
-If Sailhouse receives a `403` in response to a push subscription endpoint, it will retry as normal before placing in the Dead Letter Queue.
+Always use the raw request body for signature verification. Parsing the JSON before verification will cause the signature check to fail.
 </Note>
 
 ## Considerations
 
 ### Timeout
 
-Sailhouse will consider, and then cancel, a request if it is taking long than 5 seconds. This is configurable up to 15 minutes via [contacting support](mailto:support@sailhouse.dev).
+Sailhouse will consider, and then cancel, a request if it is taking longer than 5 seconds. This is configurable up to 15 minutes via [contacting support](mailto:support@sailhouse.dev).
 
 ### Payload size
 
 Sailhouse has a limitation of 4MB when receiving events, so your application should be able to process requests of that size.
+
+### Raw body handling
+
+When implementing HMAC signature verification, you must access the raw request body before any JSON parsing. Most web frameworks parse JSON automatically, so you'll need to configure them to provide raw body access for your webhook endpoints.
 
 ### Idempotency
 
