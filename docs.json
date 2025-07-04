@@ -23,6 +23,7 @@
           {
             "group": "Guides",
             "pages": [
+              "guides/workflows",
               "guides/cron-jobs",
               "guides/pulling-events",
               "guides/sending-events",

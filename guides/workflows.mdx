@@ -1,0 +1,287 @@
+---
+title: Workflows
+---
+
+Workflows are the backbone of any serious application. Whether you're processing payments, onboarding users, or orchestrating complex business logic, you need a reliable way to coordinate multiple steps, handle failures, and ensure everything happens in the right order.
+
+Traditional workflow engines like Temporal and Inngest are brilliant at this, but they come with a lot of overhead. Sailhouse takes a different approach - we've built workflow capabilities right into our event-driven architecture, giving you the power of complex orchestration without the complexity.
+
+## Why choose Sailhouse for workflows?
+
+Most workflow engines require you to define your entire workflow upfront in a rigid structure. With Sailhouse, workflows emerge naturally from your event-driven architecture using primitives you already understand: topics, subscriptions, wait groups, and cron jobs.
+
+This means:
+- **Incredible flexibility** - workflows adapt automatically based on your logic. Send 1 event or 4 depending on conditions like user preferences or feature flags
+- **Natural debugging** - each step is a separate event you can inspect and replay
+- **Built-in observability** - every event is tracked and can be monitored
+- **It's just events** - it's no different to the rest of your application
+
+## Getting started with workflows
+
+The simplest workflows on Sailhouse are just a chain of events, but sometimes, you need a little more control and parallelism - so let's dive into how you can achieve that.
+
+### Building your first workflow
+
+Let's walk through a real-world example: processing a new user signup. This workflow needs to:
+
+1. Validate the user's email
+2. Create their account in the database
+3. Send a welcome email
+4. Set up their default preferences
+5. Trigger a follow-up email sequence
+
+Here's how you'd build this with Sailhouse:
+
+```ts
+// Step 1: Start the workflow
+await client.publish("user-signup-started", {
+  email: "jane@example.com",
+  name: "Jane Doe",
+  signup_source: "homepage"
+});
+
+// Step 2: Use a wait group to trigger parallel tasks, and send an event
+// to `user-onboarding-complete` when all tasks are completed
+await client.wait("user-onboarding-complete", [
+  {
+    topic: "validate-email",
+    body: { email: "jane@example.com" }
+  },
+  {
+    topic: "create-account",
+    body: { email: "jane@example.com", name: "Jane Doe" }
+  },
+  {
+    topic: "send-welcome-email",
+    body: { email: "jane@example.com", name: "Jane Doe" }
+  },
+  {
+    topic: "setup-preferences",
+    body: { email: "jane@example.com" }
+  }
+]);
+```
+
+Each of these topics has its own subscription handling the specific logic. When all four steps complete, the `user-onboarding-complete` event fires, which can trigger the follow-up sequence.
+
+### Handling complex branching logic
+
+Real workflows aren't linear. Sometimes you need different paths based on conditions, error handling, or user actions. Sailhouse handles this naturally through conditional event publishing.
+
+Let's extend our signup example to handle different user types:
+
+```ts
+client.subscribe("create-account", async (event) => {
+  const { email, name, signup_source } = event.body;
+
+  const user = await createUser(email, name);
+
+  // Branch based on signup source
+  if (signup_source === "enterprise_trial") {
+    await client.publish("setup-enterprise-trial", {
+      user_id: user.id,
+      email: email
+    });
+  } else if (signup_source === "referral") {
+    await client.publish("process-referral-bonus", {
+      user_id: user.id,
+      referrer_email: event.body.referrer_email
+    });
+  }
+
+  // Always send to the general setup flow
+  await client.publish("setup-standard-account", {
+    user_id: user.id,
+    email: email
+  });
+});
+```
+
+### Error handling and retries
+
+One of the biggest advantages of Sailhouse workflows is built-in error handling. Since each step is an event, you get automatic retries, dead letter queues, and graceful failure handling without any extra configuration.
+
+```ts
+client.subscribe("send-welcome-email", async (event) => {
+  try {
+    await emailService.send({
+      to: event.body.email,
+      template: "welcome",
+      data: { name: event.body.name }
+    });
+  } catch (error) {
+    console.error("Failed to send welcome email:", error);
+
+    // Re-throw to trigger Sailhouse's retry mechanism
+    throw error;
+  }
+});
+```
+
+## Advanced workflow patterns
+
+### Long-running workflows with scheduling
+
+Some workflows span days, weeks, or even months. Think about a user onboarding sequence, subscription renewals, or compliance workflows. Sailhouse handles this brilliantly with scheduled events and cron jobs.
+
+```ts
+// After user signs up, schedule a series of onboarding emails
+client.subscribe("user-onboarding-complete", async (event) => {
+  const { user_id, email } = event.body;
+
+  // Send immediate welcome email
+  await client.publish("send-onboarding-email", {
+    user_id,
+    email,
+    template: "day-0-welcome"
+  });
+
+  // Schedule follow-up emails
+  const threeDaysFromNow = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+  await client.publish("send-onboarding-email", {
+    user_id,
+    email,
+    template: "day-3-getting-started"
+  }, {
+    date: threeDaysFromNow
+  });
+
+  const sevenDaysFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  await client.publish("send-onboarding-email", {
+    user_id,
+    email,
+    template: "day-7-tips-tricks"
+  }, {
+    date: sevenDaysFromNow
+  });
+
+  const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  await client.publish("send-onboarding-email", {
+    user_id,
+    email,
+    template: "day-30-power-user"
+  }, {
+    date: thirtyDaysFromNow
+  });
+});
+```
+
+### Building approval workflows
+
+Many business processes require human approval. Traditional workflow engines make this cumbersome, but Sailhouse's event-driven approach makes it natural.
+
+```ts
+client.subscribe("expense-submitted", async (event) => {
+  const { expense_id, amount } = event.body;
+
+  // Auto-approve small expenses
+  if (amount < 100) {
+    await client.publish("expense-approved", {
+      expense_id,
+      approved_by: "auto-approval",
+      approved_at: new Date()
+    });
+    return;
+  }
+
+  // Send for manual approval
+  await client.publish("approval-required", {
+    expense_id,
+    amount,
+    manager_email: await getManagerEmail(event.body.employee_id)
+  });
+
+  // Set a timeout for auto-escalation
+  const fortyEightHoursFromNow = new Date(Date.now() + 48 * 60 * 60 * 1000);
+  await client.publish("escalate-approval", {
+    expense_id
+  }, {
+    date: fortyEightHoursFromNow
+  });
+});
+
+// Handle the approval response (from your web app)
+client.subscribe("approval-response", async (event) => {
+  const { expense_id, approved, approver_id } = event.body;
+
+  if (approved) {
+    await client.publish("expense-approved", {
+      expense_id,
+      approved_by: approver_id,
+      approved_at: new Date()
+    });
+  } else {
+    await client.publish("expense-rejected", {
+      expense_id,
+      rejected_by: approver_id,
+      rejected_at: new Date()
+    });
+  }
+});
+```
+
+### Coordinating microservices
+
+If you're running a microservices architecture, Sailhouse workflows excel at coordinating cross-service operations while maintaining service boundaries.
+
+```ts
+// Order processing workflow across multiple services
+await client.wait("order-processing-complete", [
+  {
+    topic: "validate-inventory",    // Handled by inventory service
+    body: { order_id: "ord_123", items: [...] }
+  },
+  {
+    topic: "process-payment",       // Handled by payment service
+    body: { order_id: "ord_123", amount: 99.99 }
+  },
+  {
+    topic: "reserve-shipping",      // Handled by logistics service
+    body: { order_id: "ord_123", address: {...} }
+  }
+]);
+
+// When all services complete, fulfill the order
+client.subscribe("order-processing-complete", async (event) => {
+  await client.publish("fulfill-order", {
+    order_id: event.body.order_id
+  });
+});
+```
+
+Each service only needs to know about its own topics, maintaining clean boundaries while participating in the larger workflow.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Get started with Sailhouse"
+    icon="rocket"
+    href="/quickstart"
+  >
+    New to Sailhouse? Start here to get set up and send your first event.
+  </Card>
+  <Card
+    title="Learn about wait groups"
+    icon="users"
+    href="/concepts/wait-groups"
+  >
+    Master the coordination primitive that powers parallel workflow execution.
+  </Card>
+  <Card
+    title="Schedule events"
+    icon="clock"
+    href="/guides/scheduling-events"
+  >
+    Build time-based workflows with delays, timeouts, and scheduling.
+  </Card>
+  <Card
+    title="Set up cron jobs"
+    icon="calendar"
+    href="/guides/cron-jobs"
+  >
+    Trigger workflows on a regular schedule with cron jobs.
+  </Card>
+</CardGroup>
+
+Got questions about designing your workflows? We'd love to help - just [drop us a line](mailto:support@sailhouse.dev).
