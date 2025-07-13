@@ -55,3 +55,78 @@ let token = match env::var("SAILHOUSE_TOKEN") {
 
 let client = SailhouseClient::new(token);
 ```
+
+## Admin Operations
+
+The admin client provides methods for managing subscriptions programmatically.
+
+### Registering Push Subscriptions
+
+```rust
+use sailhouse::{SailhouseClient, Filter, ComplexFilter, FilterCondition};
+use std::collections::HashMap;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = SailhouseClient::new(token);
+    
+    // Basic push subscription
+    client.admin().register_push_subscription(
+        "user-events",
+        "welcome-email",
+        "https://api.example.com/webhooks/welcome",
+        None,
+        None,
+        None,
+    ).await?;
+    
+    // With simple filter
+    let simple_filter = Filter {
+        path: "user.type".to_string(),
+        value: "premium".to_string(),
+    };
+    
+    client.admin().register_push_subscription(
+        "user-events",
+        "premium-users", 
+        "https://api.example.com/webhooks/premium",
+        Some(simple_filter),
+        None,
+        None,
+    ).await?;
+    
+    // With advanced filter
+    let complex_filter = ComplexFilter {
+        filters: vec![
+            FilterCondition {
+                path: "user.type".to_string(),
+                condition: "equals".to_string(),
+                value: "premium".to_string(),
+            },
+            FilterCondition {
+                path: "user.status".to_string(), 
+                condition: "not_equals".to_string(),
+                value: "inactive".to_string(),
+            },
+        ],
+        operator: "and".to_string(),
+    };
+    
+    client.admin().register_push_subscription(
+        "user-events",
+        "active-premium-users",
+        "https://api.example.com/webhooks/active-premium", 
+        Some(Filter::Complex(complex_filter)),
+        Some("100/h".to_string()),
+        Some("5m".to_string()),
+    ).await?;
+    
+    Ok(())
+}
+```
+
+### Rate Limiting and Deduplication
+
+- **Rate Limit**: Controls delivery frequency using formats like "100/h" (100 per hour), "10/m" (10 per minute)
+- **Deduplication**: Prevents duplicate deliveries within a time window using formats like "5m" (5 minutes), "1h" (1 hour)
+```

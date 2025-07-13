@@ -1,0 +1,193 @@
+---
+title: Advanced Filtering
+description: Learn how to use complex filters, rate limiting, and deduplication
+---
+
+# Advanced Filtering
+
+Advanced filters allow you to create sophisticated event filtering logic using multiple conditions and logical operators. This enables you to keep your topics generic while precisely controlling which events reach each subscription.
+
+They also unlock dynamic workflows, allowing you to adjust which workflow is used based on data in the event. Which is a very powerful way of working with agents
+
+## Complex Filter Structure
+
+Advanced filters use a structured approach with multiple filter conditions combined using logical operators:
+
+```typescript
+{
+  filters: [
+    {
+      path: "user.type",
+      condition: "equals",
+      value: "premium"
+    },
+    {
+      path: "order.total",
+      condition: "not_equals",
+      value: "0"
+    }
+  ],
+  operator: "and"
+}
+```
+
+## Filter Conditions
+
+### Available Conditions
+
+| Condition | Description | Use Case |
+|-----------|-------------|----------|
+| `equals` | Exact match (default) | Filter for specific values |
+| `not_equals` | Does not match | Exclude certain values |
+
+### Logical Operators
+
+| Operator | Description | Use Case |
+|----------|-------------|----------|
+| `and` | All conditions must match | Require multiple criteria |
+| `or` | At least one condition must match | Allow alternative criteria |
+
+## Real-World Examples
+
+### E-commerce Order Processing
+
+Only process paid orders from premium customers:
+
+```typescript
+await client.admin.registerPushSubscription(
+  "orders",
+  "premium-paid-orders",
+  "https://api.shop.com/process-premium-order",
+  {
+    filter: {
+      filters: [
+        { path: "customer.tier", condition: "equals", value: "premium" },
+        { path: "payment.status", condition: "equals", value: "paid" },
+        { path: "order.total", condition: "not_equals", value: "0" }
+      ],
+      operator: "and"
+    },
+    rate_limit: "50/h",
+    deduplication: "10m"
+  }
+);
+```
+
+### User Onboarding
+
+Welcome new users but exclude test accounts:
+
+```typescript
+await client.admin.registerPushSubscription(
+  "user-events",
+  "new-user-welcome",
+  "https://api.app.com/welcome-user",
+  {
+    filter: {
+      filters: [
+        { path: "event.type", condition: "equals", value: "user_created" },
+        { path: "user.email", condition: "not_equals", value: "test@example.com" },
+        { path: "user.verified", condition: "equals", value: "true" }
+      ],
+      operator: "and"
+    },
+    deduplication: "1h"
+  }
+);
+```
+
+### Marketing Campaigns
+
+Target high-value customers for special offers:
+
+```typescript
+await client.admin.registerPushSubscription(
+  "customer-activity",
+  "vip-offers",
+  "https://marketing.app.com/send-vip-offer",
+  {
+    filter: {
+      filters: [
+        { path: "customer.lifetime_value", condition: "not_equals", value: "0" },
+        { path: "customer.segment", condition: "equals", value: "vip" }
+      ],
+      operator: "or"
+    },
+    rate_limit: "10/d",
+    deduplication: "24h"
+  }
+);
+```
+
+## Rate Limiting
+
+Rate limiting controls how frequently events are delivered to prevent overwhelming your endpoints.
+
+### Format Examples
+
+| Format | Description |
+|--------|-------------|
+| `100/h` | 100 events per hour |
+| `10/m` | 10 events per minute |
+| `5/s` | 5 events per second |
+| `1000/d` | 1000 events per day |
+
+### Use Cases
+
+- **High-volume topics**: Prevent overwhelming downstream services
+- **Cost control**: Limit API calls to external services
+- **Quality of service**: Ensure consistent processing performance
+- **User experience**: Avoid spamming users with too many notifications
+
+## Deduplication
+
+Deduplication prevents duplicate event deliveries within a specified time window.
+
+### Format Examples
+
+| Format | Description |
+|--------|-------------|
+| `5m` | 5 minutes |
+| `1h` | 1 hour |
+| `24h` | 24 hours |
+| `7d` | 7 days |
+
+### Use Cases
+
+- **Idempotent operations**: Prevent duplicate charges, emails, or notifications
+- **Data consistency**: Avoid processing the same event multiple times
+- **User experience**: Prevent spam notifications
+- **Workflow stability**: Ensure workflows are not triggered multiple times for the same event
+
+
+## Best Practices
+
+### Filter Design
+
+When designing filters, it's important to start simple by beginning with basic filters and adding complexity as needed. Test thoroughly to verify filters work as expected with sample events, and monitor performance since complex filters may impact processing speed. Additionally, use descriptive paths to make filter paths clear and meaningful for future maintenance and debugging.
+
+### Rate Limiting
+
+When implementing rate limiting, know your limits by understanding your downstream service capacity. Start conservative by beginning with lower rates and increasing as needed, and consider peak times by accounting for traffic spikes in your rate limits.
+
+### Deduplication
+
+When configuring deduplication, match your use case by using appropriate time windows for your business logic. Consider event timing by accounting for potential delays in event delivery, and balance safety and responsiveness since longer windows are safer but may delay legitimate retries. Finally, test deduplication behavior to ensure it works as expected with your event patterns.
+
+
+<CardGroup cols={2}>
+  <Card
+    title="View subscription concepts"
+    icon="layer-group"
+    href="/concepts/subscriptions"
+  >
+    Learn more about subscription fundamentals
+  </Card>
+  <Card
+    title="Check out our SDKs"
+    icon="code"
+    href="/sdks/introduction"
+  >
+    See language-specific examples for advanced filtering
+  </Card>
+</CardGroup>

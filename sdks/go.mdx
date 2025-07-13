@@ -104,5 +104,75 @@ func main() {
         event.Ack()
     }
 }
+```
+
+## Admin Operations
+
+The admin client provides methods for managing subscriptions programmatically.
+
+### Registering Push Subscriptions
+
+```go
+import (
+    "context"
+    "github.com/sailhouse/sdk-go/sailhouse"
+)
+
+// Basic push subscription
+err := client.Admin.RegisterPushSubscription(ctx, &sailhouse.PushSubscriptionRequest{
+    Topic:        "user-events",
+    Subscription: "welcome-email",
+    Endpoint:     "https://api.example.com/webhooks/welcome",
+})
+if err != nil {
+    panic(err)
+}
+
+// With simple filter
+err = client.Admin.RegisterPushSubscription(ctx, &sailhouse.PushSubscriptionRequest{
+    Topic:        "user-events", 
+    Subscription: "premium-users",
+    Endpoint:     "https://api.example.com/webhooks/premium",
+    Filter: &sailhouse.Filter{
+        Path:  "user.type",
+        Value: "premium",
+    },
+})
+if err != nil {
+    panic(err)
+}
+
+// With advanced filter
+err = client.Admin.RegisterPushSubscription(ctx, &sailhouse.PushSubscriptionRequest{
+    Topic:        "user-events",
+    Subscription: "active-premium-users", 
+    Endpoint:     "https://api.example.com/webhooks/active-premium",
+    Filter: &sailhouse.ComplexFilter{
+        Filters: []sailhouse.FilterCondition{
+            {
+                Path:      "user.type",
+                Condition: "equals",
+                Value:     "premium",
+            },
+            {
+                Path:      "user.status",
+                Condition: "not_equals", 
+                Value:     "inactive",
+            },
+        },
+        Operator: "and",
+    },
+    RateLimit:     "100/h",
+    Deduplication: "5m",
+})
+if err != nil {
+    panic(err)
+}
+```
+
+### Rate Limiting and Deduplication
+
+- **Rate Limit**: Controls delivery frequency using formats like "100/h" (100 per hour), "10/m" (10 per minute)
+- **Deduplication**: Prevents duplicate deliveries within a time window using formats like "5m" (5 minutes), "1h" (1 hour)
 
 ```

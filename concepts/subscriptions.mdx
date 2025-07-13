@@ -86,3 +86,59 @@ The filter value is the value for a subscription to match on, following the exam
 | `pro`      | Create the customer on stripe and start their trial.                                          |
 | `UK`       | For the UK, you may need to run extra logic for imports and taxes.                            |
 | `rejected` | When an application is rejected, we should email the candidate. Not all updates need contact. |
+
+### Advanced Filters
+
+For more complex filtering scenarios, you can combine multiple filter conditions using logical operators.
+
+#### Multiple Conditions
+
+```typescript
+filter: {
+  filters: [
+    { path: "user.type", condition: "equals", value: "premium" },
+    { path: "user.status", condition: "not_equals", value: "inactive" }
+  ],
+  operator: "and"
+}
+```
+
+#### Available Conditions
+
+| Condition | Description | Example |
+|-----------|-------------|---------|
+| `equals` | Exact match (default) | `user.type` equals `premium` |
+| `not_equals` | Does not match | `status` not equals `inactive` |
+
+#### Logical Operators
+
+| Operator | Description |
+|----------|-------------|
+| `and` | All conditions must match |
+| `or` | At least one condition must match |
+
+### Rate Limiting and Deduplication
+
+Subscriptions also support rate limiting and deduplication to control delivery behavior:
+
+- **Rate Limit**: Controls how frequently events are delivered (e.g., "100/h" for 100 per hour, "10/m" for 10 per minute)
+- **Deduplication**: Prevents duplicate deliveries within a specified time window (e.g., "5m" for 5 minutes, "1h" for 1 hour)
+
+```typescript
+await client.admin.registerPushSubscription(
+  "user-events",
+  "premium-user-events",
+  "https://api.example.com/webhooks/premium",
+  {
+    filter: {
+      filters: [
+        { path: "user.type", condition: "equals", value: "premium" },
+        { path: "user.status", condition: "not_equals", value: "inactive" }
+      ],
+      operator: "and"
+    },
+    rate_limit: "50/h",
+    deduplication: "10m"
+  }
+);
+```

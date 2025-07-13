@@ -137,3 +137,66 @@ The `subscribe()` method accepts several parameters:
 - `polling_interval`: Time between polling attempts in seconds (default: 5.0)
 - `on_error`: Optional error handler function
 - `exit_on_error`: Whether to exit on error (default: False)
+
+## Admin Operations
+
+The admin client provides methods for managing subscriptions programmatically.
+
+### Registering Push Subscriptions
+
+```python
+import asyncio
+from sailhouse import SailhouseClient, Filter, ComplexFilter, FilterCondition
+
+async def main():
+    client = SailhouseClient(token=os.getenv("SAILHOUSE_TOKEN"))
+    
+    # Basic push subscription
+    await client.admin.register_push_subscription(
+        topic="user-events",
+        subscription="welcome-email", 
+        endpoint="https://api.example.com/webhooks/welcome"
+    )
+    
+    # With simple filter
+    await client.admin.register_push_subscription(
+        topic="user-events",
+        subscription="premium-users",
+        endpoint="https://api.example.com/webhooks/premium",
+        filter=Filter(
+            path="user.type",
+            value="premium"
+        )
+    )
+    
+    # With advanced filter
+    await client.admin.register_push_subscription(
+        topic="user-events",
+        subscription="active-premium-users",
+        endpoint="https://api.example.com/webhooks/active-premium",
+        filter=ComplexFilter(
+            filters=[
+                FilterCondition(
+                    path="user.type",
+                    condition="equals",
+                    value="premium"
+                ),
+                FilterCondition(
+                    path="user.status", 
+                    condition="not_equals",
+                    value="inactive"
+                )
+            ],
+            operator="and"
+        ),
+        rate_limit="100/h",
+        deduplication="5m"
+    )
+
+asyncio.run(main())
+```
+
+### Rate Limiting and Deduplication
+
+- **Rate Limit**: Controls delivery frequency using formats like "100/h" (100 per hour), "10/m" (10 per minute)
+- **Deduplication**: Prevents duplicate deliveries within a time window using formats like "5m" (5 minutes), "1h" (1 hour)
