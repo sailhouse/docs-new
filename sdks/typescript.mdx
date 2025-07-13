@@ -60,3 +60,62 @@ await Promise.all(events.map(async (event) => {
 await event.ack();
 }));
 ```
+
+## Admin Operations
+
+The admin client provides methods for managing subscriptions programmatically.
+
+### Registering Push Subscriptions
+
+```typescript
+// Basic push subscription
+await client.admin.registerPushSubscription(
+  "user-events",
+  "welcome-email", 
+  "https://api.example.com/webhooks/welcome"
+);
+
+// With simple filter
+await client.admin.registerPushSubscription(
+  "user-events",
+  "premium-users",
+  "https://api.example.com/webhooks/premium",
+  {
+    filter: {
+      path: "user.type",
+      value: "premium"
+    }
+  }
+);
+
+// With advanced filter
+await client.admin.registerPushSubscription(
+  "user-events", 
+  "active-premium-users",
+  "https://api.example.com/webhooks/active-premium",
+  {
+    filter: {
+      filters: [
+        {
+          path: "user.type",
+          condition: "equals", 
+          value: "premium"
+        },
+        {
+          path: "user.status",
+          condition: "not_equals",
+          value: "inactive" 
+        }
+      ],
+      operator: "and"
+    },
+    rate_limit: "100/h",
+    deduplication: "5m"
+  }
+);
+```
+
+### Rate Limiting and Deduplication
+
+- **Rate Limit**: Controls delivery frequency using formats like "100/h" (100 per hour), "10/m" (10 per minute)
+- **Deduplication**: Prevents duplicate deliveries within a time window using formats like "5m" (5 minutes), "1h" (1 hour)

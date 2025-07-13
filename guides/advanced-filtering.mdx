@@ -1,0 +1,245 @@
+---
+title: Advanced Filtering
+description: Learn how to use complex filters, rate limiting, and deduplication
+---
+
+# Advanced Filtering
+
+Advanced filters allow you to create sophisticated event filtering logic using multiple conditions and logical operators. This enables you to keep your topics generic while precisely controlling which events reach each subscription.
+
+## Complex Filter Structure
+
+Advanced filters use a structured approach with multiple filter conditions combined using logical operators:
+
+```typescript
+{
+  filters: [
+    {
+      path: "user.type",
+      condition: "equals",
+      value: "premium"
+    },
+    {
+      path: "order.total", 
+      condition: "not_equals",
+      value: "0"
+    }
+  ],
+  operator: "and"
+}
+```
+
+## Filter Conditions
+
+### Available Conditions
+
+| Condition | Description | Use Case |
+|-----------|-------------|----------|
+| `equals` | Exact match (default) | Filter for specific values |
+| `not_equals` | Does not match | Exclude certain values |
+
+### Logical Operators
+
+| Operator | Description | Use Case |
+|----------|-------------|----------|
+| `and` | All conditions must match | Require multiple criteria |
+| `or` | At least one condition must match | Allow alternative criteria |
+
+## Real-World Examples
+
+### E-commerce Order Processing
+
+Only process paid orders from premium customers:
+
+```typescript
+await client.admin.registerPushSubscription(
+  "orders",
+  "premium-paid-orders", 
+  "https://api.shop.com/process-premium-order",
+  {
+    filter: {
+      filters: [
+        { path: "customer.tier", condition: "equals", value: "premium" },
+        { path: "payment.status", condition: "equals", value: "paid" },
+        { path: "order.total", condition: "not_equals", value: "0" }
+      ],
+      operator: "and"
+    },
+    rate_limit: "50/h",
+    deduplication: "10m"
+  }
+);
+```
+
+### User Onboarding
+
+Welcome new users but exclude test accounts:
+
+```typescript  
+await client.admin.registerPushSubscription(
+  "user-events",
+  "new-user-welcome",
+  "https://api.app.com/welcome-user", 
+  {
+    filter: {
+      filters: [
+        { path: "event.type", condition: "equals", value: "user_created" },
+        { path: "user.email", condition: "not_equals", value: "test@example.com" },
+        { path: "user.verified", condition: "equals", value: "true" }
+      ],
+      operator: "and"
+    },
+    deduplication: "1h"
+  }
+);
+```
+
+### Marketing Campaigns
+
+Target high-value customers for special offers:
+
+```typescript
+await client.admin.registerPushSubscription(
+  "customer-activity",
+  "vip-offers",
+  "https://marketing.app.com/send-vip-offer",
+  {
+    filter: {
+      filters: [
+        { path: "customer.lifetime_value", condition: "not_equals", value: "0" },
+        { path: "customer.segment", condition: "equals", value: "vip" }
+      ],
+      operator: "or"
+    },
+    rate_limit: "10/d",
+    deduplication: "24h"
+  }
+);
+```
+
+## Rate Limiting
+
+Rate limiting controls how frequently events are delivered to prevent overwhelming your endpoints.
+
+### Format Examples
+
+| Format | Description |
+|--------|-------------|
+| `100/h` | 100 events per hour |
+| `10/m` | 10 events per minute |
+| `5/s` | 5 events per second |
+| `1000/d` | 1000 events per day |
+
+### Use Cases
+
+- **High-volume topics**: Prevent overwhelming downstream services
+- **Cost control**: Limit API calls to external services
+- **Quality of service**: Ensure consistent processing performance
+
+## Deduplication
+
+Deduplication prevents duplicate event deliveries within a specified time window.
+
+### Format Examples
+
+| Format | Description |
+|--------|-------------|
+| `5m` | 5 minutes |
+| `1h` | 1 hour |
+| `24h` | 24 hours |
+| `7d` | 7 days |
+
+### Use Cases
+
+- **Idempotent operations**: Prevent duplicate charges, emails, or notifications
+- **Data consistency**: Avoid processing the same event multiple times
+- **User experience**: Prevent spam notifications
+
+## Schema Configuration
+
+You can also configure advanced filters in your schema files:
+
+```yaml
+subscriptions:
+  - slug: enterprise-alerts
+    topic: system-events
+    type: push
+    endpoint: https://alerts.enterprise.com/webhook
+    filter:
+      filters:
+        - path: severity
+          condition: equals
+          value: critical
+        - path: environment
+          condition: not_equals
+          value: development
+      operator: and
+    rate_limit: "20/m"
+    deduplication: "15m"
+    
+  - slug: user-notifications
+    topic: user-events
+    type: push
+    endpoint: https://notifications.app.com/webhook
+    filter:
+      filters:
+        - path: user.preferences.notifications
+          condition: equals
+          value: enabled
+        - path: event.type
+          condition: equals
+          value: mention
+      operator: and
+    deduplication: "5m"
+```
+
+## Best Practices
+
+### Filter Design
+
+1. **Start simple**: Begin with basic filters and add complexity as needed
+2. **Test thoroughly**: Verify filters work as expected with sample events
+3. **Monitor performance**: Complex filters may impact processing speed
+
+### Rate Limiting
+
+1. **Know your limits**: Understand your downstream service capacity
+2. **Start conservative**: Begin with lower rates and increase as needed
+3. **Consider peak times**: Account for traffic spikes in your rate limits
+
+### Deduplication
+
+1. **Match your use case**: Use appropriate time windows for your business logic
+2. **Consider event timing**: Account for potential delays in event delivery
+3. **Balance safety and responsiveness**: Longer windows are safer but may delay legitimate retries
+
+## Troubleshooting
+
+### Common Issues
+
+1. **No events received**: Check filter conditions match your event structure
+2. **Too many events**: Verify logical operators (`and` vs `or`) are correct
+3. **Delayed processing**: Rate limiting may be too restrictive
+
+### Debugging Tips
+
+1. **Test with simple filters first**: Isolate complex filter logic
+2. **Check event structure**: Ensure filter paths match actual event data
+3. **Monitor subscription metrics**: Use dashboard to verify filter behavior
+
+<CardGroup cols={2}>
+  <Card
+    title="View subscription concepts"
+    icon="layer-group"
+    href="/concepts/subscriptions"
+  >
+    Learn more about subscription fundamentals
+  </Card>
+  <Card
+    title="Check out our SDKs"
+    icon="code"
+    href="/sdks/introduction"
+  >
+    See language-specific examples for advanced filtering
+  </Card>
+</CardGroup>
