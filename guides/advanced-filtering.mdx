@@ -7,6 +7,8 @@ description: Learn how to use complex filters, rate limiting, and deduplication
 
 Advanced filters allow you to create sophisticated event filtering logic using multiple conditions and logical operators. This enables you to keep your topics generic while precisely controlling which events reach each subscription.
 
+They also unlock dynamic workflows, allowing you to adjust which workflow is used based on data in the event. Which is a very powerful way of working with agents
+
 ## Complex Filter Structure
 
 Advanced filters use a structured approach with multiple filter conditions combined using logical operators:
@@ -20,7 +22,7 @@ Advanced filters use a structured approach with multiple filter conditions combi
       value: "premium"
     },
     {
-      path: "order.total", 
+      path: "order.total",
       condition: "not_equals",
       value: "0"
     }
@@ -54,7 +56,7 @@ Only process paid orders from premium customers:
 ```typescript
 await client.admin.registerPushSubscription(
   "orders",
-  "premium-paid-orders", 
+  "premium-paid-orders",
   "https://api.shop.com/process-premium-order",
   {
     filter: {
@@ -75,11 +77,11 @@ await client.admin.registerPushSubscription(
 
 Welcome new users but exclude test accounts:
 
-```typescript  
+```typescript
 await client.admin.registerPushSubscription(
   "user-events",
   "new-user-welcome",
-  "https://api.app.com/welcome-user", 
+  "https://api.app.com/welcome-user",
   {
     filter: {
       filters: [
@@ -135,6 +137,7 @@ Rate limiting controls how frequently events are delivered to prevent overwhelmi
 - **High-volume topics**: Prevent overwhelming downstream services
 - **Cost control**: Limit API calls to external services
 - **Quality of service**: Ensure consistent processing performance
+- **User experience**: Avoid spamming users with too many notifications
 
 ## Deduplication
 
@@ -154,41 +157,23 @@ Deduplication prevents duplicate event deliveries within a specified time window
 - **Idempotent operations**: Prevent duplicate charges, emails, or notifications
 - **Data consistency**: Avoid processing the same event multiple times
 - **User experience**: Prevent spam notifications
+- **Workflow stability**: Ensure workflows are not triggered multiple times for the same event
 
 
 ## Best Practices
 
 ### Filter Design
 
-1. **Start simple**: Begin with basic filters and add complexity as needed
-2. **Test thoroughly**: Verify filters work as expected with sample events
-3. **Monitor performance**: Complex filters may impact processing speed
+When designing filters, it's important to start simple by beginning with basic filters and adding complexity as needed. Test thoroughly to verify filters work as expected with sample events, and monitor performance since complex filters may impact processing speed. Additionally, use descriptive paths to make filter paths clear and meaningful for future maintenance and debugging.
 
 ### Rate Limiting
 
-1. **Know your limits**: Understand your downstream service capacity
-2. **Start conservative**: Begin with lower rates and increase as needed
-3. **Consider peak times**: Account for traffic spikes in your rate limits
+When implementing rate limiting, know your limits by understanding your downstream service capacity. Start conservative by beginning with lower rates and increasing as needed, and consider peak times by accounting for traffic spikes in your rate limits.
 
 ### Deduplication
 
-1. **Match your use case**: Use appropriate time windows for your business logic
-2. **Consider event timing**: Account for potential delays in event delivery
-3. **Balance safety and responsiveness**: Longer windows are safer but may delay legitimate retries
+When configuring deduplication, match your use case by using appropriate time windows for your business logic. Consider event timing by accounting for potential delays in event delivery, and balance safety and responsiveness since longer windows are safer but may delay legitimate retries. Finally, test deduplication behavior to ensure it works as expected with your event patterns.
 
-## Troubleshooting
-
-### Common Issues
-
-1. **No events received**: Check filter conditions match your event structure
-2. **Too many events**: Verify logical operators (`and` vs `or`) are correct
-3. **Delayed processing**: Rate limiting may be too restrictive
-
-### Debugging Tips
-
-1. **Test with simple filters first**: Isolate complex filter logic
-2. **Check event structure**: Ensure filter paths match actual event data
-3. **Monitor subscription metrics**: Use dashboard to verify filter behavior
 
 <CardGroup cols={2}>
   <Card
