@@ -23,6 +23,7 @@
           {
             "group": "Guides",
             "pages": [
+              "guides/advanced-filtering",
               "guides/workflows",
               "guides/cron-jobs",
               "guides/pulling-events",
