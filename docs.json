@@ -23,13 +23,13 @@
           {
             "group": "Guides",
             "pages": [
-              "guides/advanced-filtering",
-              "guides/workflows",
-              "guides/cron-jobs",
-              "guides/pulling-events",
               "guides/sending-events",
               "guides/receiving-push-events",
-              "guides/scheduling-events"
+              "guides/pulling-events",
+              "guides/workflows",
+              "guides/cron-jobs",
+              "guides/scheduling-events",
+              "guides/advanced-filtering"
             ]
           },
           {
