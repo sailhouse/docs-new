@@ -93,16 +93,14 @@ For more complex filtering scenarios, you can combine multiple filter conditions
 
 #### Multiple Conditions
 
-```yaml
-filter:
-  filters:
-    - path: user.type
-      condition: equals
-      value: premium
-    - path: user.status  
-      condition: not_equals
-      value: inactive
-  operator: and
+```typescript
+filter: {
+  filters: [
+    { path: "user.type", condition: "equals", value: "premium" },
+    { path: "user.status", condition: "not_equals", value: "inactive" }
+  ],
+  operator: "and"
+}
 ```
 
 #### Available Conditions
@@ -126,21 +124,21 @@ Subscriptions also support rate limiting and deduplication to control delivery b
 - **Rate Limit**: Controls how frequently events are delivered (e.g., "100/h" for 100 per hour, "10/m" for 10 per minute)
 - **Deduplication**: Prevents duplicate deliveries within a specified time window (e.g., "5m" for 5 minutes, "1h" for 1 hour)
 
-```yaml
-subscriptions:
-  - slug: premium-user-events
-    topic: user-events
-    type: push
-    endpoint: https://api.example.com/webhooks/premium
-    filter:
-      filters:
-        - path: user.type
-          condition: equals
-          value: premium
-        - path: user.status
-          condition: not_equals
-          value: inactive
-      operator: and
-    rate_limit: "50/h"
+```typescript
+await client.admin.registerPushSubscription(
+  "user-events",
+  "premium-user-events",
+  "https://api.example.com/webhooks/premium",
+  {
+    filter: {
+      filters: [
+        { path: "user.type", condition: "equals", value: "premium" },
+        { path: "user.status", condition: "not_equals", value: "inactive" }
+      ],
+      operator: "and"
+    },
+    rate_limit: "50/h",
     deduplication: "10m"
+  }
+);
 ```

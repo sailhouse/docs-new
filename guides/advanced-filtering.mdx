@@ -155,43 +155,6 @@ Deduplication prevents duplicate event deliveries within a specified time window
 - **Data consistency**: Avoid processing the same event multiple times
 - **User experience**: Prevent spam notifications
 
-## Schema Configuration
-
-You can also configure advanced filters in your schema files:
-
-```yaml
-subscriptions:
-  - slug: enterprise-alerts
-    topic: system-events
-    type: push
-    endpoint: https://alerts.enterprise.com/webhook
-    filter:
-      filters:
-        - path: severity
-          condition: equals
-          value: critical
-        - path: environment
-          condition: not_equals
-          value: development
-      operator: and
-    rate_limit: "20/m"
-    deduplication: "15m"
-    
-  - slug: user-notifications
-    topic: user-events
-    type: push
-    endpoint: https://notifications.app.com/webhook
-    filter:
-      filters:
-        - path: user.preferences.notifications
-          condition: equals
-          value: enabled
-        - path: event.type
-          condition: equals
-          value: mention
-      operator: and
-    deduplication: "5m"
-```
 
 ## Best Practices
 
