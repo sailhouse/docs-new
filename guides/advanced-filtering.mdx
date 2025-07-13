@@ -3,13 +3,13 @@ title: Advanced Filtering
 description: Learn how to use complex filters, rate limiting, and deduplication
 ---
 
-# Advanced Filtering
+## Advanced Filtering
 
 Advanced filters allow you to create sophisticated event filtering logic using multiple conditions and logical operators. This enables you to keep your topics generic while precisely controlling which events reach each subscription.
 
 They also unlock dynamic workflows, allowing you to adjust which workflow is used based on data in the event. Which is a very powerful way of working with agents
 
-## Complex Filter Structure
+### Complex Filter Structure
 
 Advanced filters use a structured approach with multiple filter conditions combined using logical operators:
 
@@ -31,25 +31,25 @@ Advanced filters use a structured approach with multiple filter conditions combi
 }
 ```
 
-## Filter Conditions
+### Filter Conditions
 
-### Available Conditions
+#### Available Conditions
 
 | Condition | Description | Use Case |
 |-----------|-------------|----------|
 | `equals` | Exact match (default) | Filter for specific values |
 | `not_equals` | Does not match | Exclude certain values |
 
-### Logical Operators
+#### Logical Operators
 
 | Operator | Description | Use Case |
 |----------|-------------|----------|
 | `and` | All conditions must match | Require multiple criteria |
 | `or` | At least one condition must match | Allow alternative criteria |
 
-## Real-World Examples
+### Real-World Examples
 
-### E-commerce Order Processing
+#### E-commerce Order Processing
 
 Only process paid orders from premium customers:
 
@@ -73,7 +73,7 @@ await client.admin.registerPushSubscription(
 );
 ```
 
-### User Onboarding
+#### User Onboarding
 
 Welcome new users but exclude test accounts:
 
@@ -96,7 +96,7 @@ await client.admin.registerPushSubscription(
 );
 ```
 
-### Marketing Campaigns
+#### Marketing Campaigns
 
 Target high-value customers for special offers:
 
